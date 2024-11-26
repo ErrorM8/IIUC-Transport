@@ -1,0 +1,256 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <map>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+// Base User class
+class User {
+protected:
+    string userID, name, role;
+
+public:
+    User(string id, string n, string r) : userID(id), name(n), role(r) {}
+    virtual void displayInfo() {
+        cout << "User ID: " << userID << ", Name: " << name << ", Role: " << role << endl;
+    }
+    string getRole() { return role; }
+    string getUserID() { return userID; }
+    virtual ~User() {}
+};
+
+// Derived classes for specific roles
+class Student : public User {
+public:
+    Student(string id, string n) : User(id, n, "Student") {}
+};
+
+class Staff : public User {
+public:
+    Staff(string id, string n) : User(id, n, "Staff") {}
+};
+
+class Visitor : public User {
+public:
+    Visitor(string id, string n) : User(id, n, "Visitor") {}
+};
+
+// Vehicle class
+class Vehicle {
+private:
+    string vehicleID, vehicleType;
+    int capacity;
+    bool maintenanceNeeded;
+
+public:
+    Vehicle(string id, string type, int cap) : vehicleID(id), vehicleType(type), capacity(cap), maintenanceNeeded(false) {}
+    void displayInfo() {
+        cout << "Vehicle ID: " << vehicleID << ", Type: " << vehicleType << ", Capacity: " << capacity;
+        cout << ", Maintenance: " << (maintenanceNeeded ? "Required" : "Up-to-date") << endl;
+    }
+    string getVehicleID() { return vehicleID; }
+    void markForMaintenance() { maintenanceNeeded = true; }
+    void clearMaintenance() { maintenanceNeeded = false; }
+};
+
+// Route class
+class Route {
+private:
+    string routeID, startLocation, endLocation;
+
+public:
+    Route(string id, string start, string end) : routeID(id), startLocation(start), endLocation(end) {}
+    void displayRoute() {
+        cout << "Route ID: " << routeID << ", From: " << startLocation << " To: " << endLocation << endl;
+    }
+    string getRouteID() { return routeID; }
+};
+
+// Feedback system
+class Feedback {
+private:
+    map<string, vector<string>> feedbackStorage;
+
+public:
+    void addFeedback(string userID, string feedback) {
+        feedbackStorage[userID].push_back(feedback);
+    }
+    void displayFeedbacks() {
+        for (auto &f : feedbackStorage) {
+            cout << "User ID: " << f.first << endl;
+            for (auto &fb : f.second) {
+                cout << " - " << fb << endl;
+            }
+        }
+    }
+};
+
+// Transport System class
+class TransportSystem {
+private:
+    vector<User*> users;
+    vector<Vehicle> vehicles;
+    vector<Route> routes;
+    Feedback feedbackSystem;
+
+    map<string, pair<int, int>> vehicleLocations;
+
+public:
+    void addUser(User* user) { users.push_back(user); }
+    void addVehicle(const Vehicle& vehicle) { vehicles.push_back(vehicle); }
+    void addRoute(const Route& route) { routes.push_back(route); }
+
+    void simulateRealTimeTracking() {
+        srand(time(0));
+        for (auto& vehicle : vehicles) {
+            vehicleLocations[vehicle.getVehicleID()] = {rand() % 100, rand() % 100};
+        }
+    }
+
+    void displayTracking() {
+        cout << "\nReal-time Vehicle Locations (Simulated):" << endl;
+        for (auto& loc : vehicleLocations) {
+            cout << "Vehicle " << loc.first << " - Location: (" << loc.second.first << ", " << loc.second.second << ")" << endl;
+        }
+    }
+
+    void reserveSeat(string userID, string routeID) {
+        cout << "\nUser " << userID << " reserved a seat on Route " << routeID << endl;
+    }
+
+    void addFeedback(string userID, string feedback) {
+        feedbackSystem.addFeedback(userID, feedback);
+    }
+
+    void displayFeedbacks() {
+        cout << "\nUser Feedbacks:" << endl;
+        feedbackSystem.displayFeedbacks();
+    }
+
+    void scheduleMaintenance(string vehicleID) {
+        for (auto& vehicle : vehicles) {
+            if (vehicle.getVehicleID() == vehicleID) {
+                vehicle.markForMaintenance();
+                cout << "\nVehicle " << vehicleID << " scheduled for maintenance." << endl;
+                return;
+            }
+        }
+        cout << "\nVehicle " << vehicleID << " not found." << endl;
+    }
+
+    void displaySystemInfo() {
+        cout << "\nUsers:" << endl;
+        for (auto& user : users) user->displayInfo();
+
+        cout << "\nVehicles:" << endl;
+        for (auto& vehicle : vehicles) vehicle.displayInfo();
+
+        cout << "\nRoutes:" << endl;
+        for (auto& route : routes) route.displayRoute();
+    }
+};
+
+int main() {
+    TransportSystem ts;
+    int choice;
+
+    do {
+        cout << "\n--- Transport System Menu ---\n";
+        cout << "1. Add User\n2. Add Vehicle\n3. Add Route\n4. Reserve Seat\n5. Add Feedback\n";
+        cout << "6. Display Feedbacks\n7. Schedule Maintenance\n8. Display System Info\n9. Simulate Tracking\n10. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1: {
+            string id, name, role;
+            cout << "Enter User ID: ";
+            cin >> id;
+            cout << "Enter Name: ";
+            cin.ignore();
+            getline(cin, name);
+            cout << "Enter Role (Student/Staff/Visitor): ";
+            cin >> role;
+            if (role == "Student")
+                ts.addUser(new Student(id, name));
+            else if (role == "Staff")
+                ts.addUser(new Staff(id, name));
+            else if (role == "Visitor")
+                ts.addUser(new Visitor(id, name));
+            else
+                cout << "Invalid role!" << endl;
+            break;
+        }
+        case 2: {
+            string id, type;
+            int capacity;
+            cout << "Enter Vehicle ID: ";
+            cin >> id;
+            cout << "Enter Vehicle Type: ";
+            cin >> type;
+            cout << "Enter Capacity: ";
+            cin >> capacity;
+            ts.addVehicle(Vehicle(id, type, capacity));
+            break;
+        }
+        case 3: {
+            string id, start, end;
+            cout << "Enter Route ID: ";
+            cin >> id;
+            cout << "Enter Start Location: ";
+            cin.ignore();
+            getline(cin, start);
+            cout << "Enter End Location: ";
+            getline(cin, end);
+            ts.addRoute(Route(id, start, end));
+            break;
+        }
+        case 4: {
+            string userID, routeID;
+            cout << "Enter User ID: ";
+            cin >> userID;
+            cout << "Enter Route ID: ";
+            cin >> routeID;
+            ts.reserveSeat(userID, routeID);
+            break;
+        }
+        case 5: {
+            string userID, feedback;
+            cout << "Enter User ID: ";
+            cin >> userID;
+            cout << "Enter Feedback: ";
+            cin.ignore();
+            getline(cin, feedback);
+            ts.addFeedback(userID, feedback);
+            break;
+        }
+        case 6:
+            ts.displayFeedbacks();
+            break;
+        case 7: {
+            string vehicleID;
+            cout << "Enter Vehicle ID: ";
+            cin >> vehicleID;
+            ts.scheduleMaintenance(vehicleID);
+            break;
+        }
+        case 8:
+            ts.displaySystemInfo();
+            break;
+        case 9:
+            ts.simulateRealTimeTracking();
+            ts.displayTracking();
+            break;
+        case 10:
+            cout << "Exiting the system. Goodbye!" << endl;
+            break;
+        default:
+            cout << "Invalid choice! Please try again." << endl;
+        }
+    } while (choice != 10);
+
+    return 0;
+}
